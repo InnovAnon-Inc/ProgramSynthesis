@@ -1,0 +1,103 @@
+#! /usr/bin/env python3
+
+from enum import Enum, unique
+
+@unique
+class CGType(Enum):
+	CG_mod              =  0 # shuffle these values before using them
+	CG_Module           =  1
+	CG_Interactive      =  2
+	CG_Expression       =  3
+	CG_FunctionType     =  4
+	CG_stmt             =  5
+	CG_FunctionDef      =  6
+	CG_AsyncFunctionDef =  7
+	CG_ClassDef         =  8
+	CG_Return           =  9
+	CG_Delete           = 10
+	CG_Assign           = 11
+	CG_AugAssign        = 12
+	CG_AnnAssign        = 13
+	CG_For              = 14
+	CG_AsyncFor         = 15
+	CG_While            = 16
+	CG_If               = 17
+	CG_With             = 18
+	CG_AsyncWith        = 19
+	CG_Match            = 20
+	CG_Raise            = 21
+	CG_Try              = 22
+	CG_Assert           = 23
+	CG_Import           = 24
+	CG_ImportFrom       = 25
+	CG_Global           = 26
+	CG_Nonlocal         = 27
+	CG_Expr             = 28
+	CG_Pass             = 29
+	CG_Break            = 30
+	CG_Continue         = 31
+
+	CG_expr             = 32
+	CG_BoolOp           = 33
+	CG_NamedExpr        = 34
+	CG_BinOp            = 35
+	CG_UnaryOp          = 36
+	CG_Lambda           = 37
+	CG_IfExp            = 38
+	CG_Dict             = 39
+	CG_Set              = 40
+	CG_ListComp         = 41
+	CG_SetComp          = 42
+	CG_DictComp         = 43
+	CG_GeneratorExp     = 44
+	CG_Await            = 45
+	CG_Yield            = 46
+	CG_YieldFrom        = 47
+	CG_Compare          = 48
+	CG_Call             = 49
+	CG_FormattedValue   = 50
+	CG_JoinedStr        = 51
+	CG_Constant         = 52
+	CG_Attribute        = 53
+	CG_Subscript        = 54
+	CG_Starred          = 55
+	CG_Name             = 56
+	CG_List             = 57
+	CG_Tuple            = 58
+	CG_Slice            = 59
+	CG_attributes       = 60
+	CG_expr_context     = 61
+	CG_boolop           = 62
+	CG_operator         = 63
+	CG_unaryop          = 64
+	CG_cmpop            = 65
+	CG_comprehension    = 66
+	CG_excepthandler    = 67
+	CG_arguments        = 68
+	CG_arg              = 69
+	CG_keyword          = 70
+	CG_alias            = 71
+	CG_withitem         = 72
+	CG_match_case       = 73
+	CG_pattern          = 74
+	CG_MatchValue       = 75
+	CG_MatchSingleton   = 76
+	CG_MatchSequence    = 77
+	CG_MatchMapping     = 78
+	CG_MatchClass       = 79
+	CG_MatchStar        = 80
+	CG_MatchAs          = 81
+	CG_MatchOr          = 82
+	CG_type_ignore      = 83
+
+	CG_star             = 84
+	CG_optional         = 85
+	CG_name             = 86
+	CG_int              = 87
+	CG_constant         = 88
+	CG_identifier       = 89
+	CG_string           = 90
+	CG_char             = 91
+	CG_test             = 92
+	CG_module           = 93
+
