@@ -1,4 +1,18 @@
 #! /usr/bin/env python3
+""" Full-Monty Python3 and the Holy Grail """
+
+__copyright__  = "Copyright (C) 2009, Innovations Anonymous"
+__version__    = "4.0"
+__license__    = "Public Domain"
+__status__     = "Development"
+
+__author__     = "Brahmjot Singh"
+__maintainer__ = "Brahmjot Singh"
+__email__      = "InnovAnon-Inc@protonmail.com"
+__contact__    = "(801) 448-7855"
+__credits__    = [
+	"https://stackoverflow.com/questions/70936788/out-of-core-external-memory-combinatorics-in-python",
+]
 
 import ast
 #from dask            import delayed
@@ -38,22 +52,26 @@ from dask import bag, delayed
 #def product(*args, repeat=1):
 #	r = ip(*args, repeat=repeat)
 #	return bag.from_sequence(r)
+
 def product(*funcs, repeat=None):
-    if not funcs:
-        yield ()
-        return
+	__credits__    = [
+		"https://stackoverflow.com/questions/70936788/out-of-core-external-memory-combinatorics-in-python",
+	]
+	if not funcs:
+		yield ()
+		return
 
-    if repeat is not None:
-        funcs *= repeat
+	if repeat is not None:
+		funcs *= repeat
 
-    func, *rest = funcs
+	func, *rest = funcs
 
-    for val in func():
-        for res in product(*rest):
-            yield (val, ) + res
+	for val in func():
+		for res in product(*rest):
+			yield (val, ) + res
 
 from functools import partial
-values = product(partial(gen1, arg1, arg2), partial(gen2, arg1))
+#values = product(partial(gen1, arg1, arg2), partial(gen2, arg1))
 
 #root = dbopen('test.fs')
 def out_of_core(func):
@@ -66,8 +84,10 @@ def out_of_core(func):
 		#root['A'] = A = ZBigArray((10,), object)
 		#transaction.commit()
 		#return A
-		r = func(*args, **kwargs)
-		return bag.from_sequence(r)
+
+		#r = func(*args, **kwargs)
+		#return bag.from_sequence(r)
+		return func(*args, **kwargs)
 	return eager
 
 def trace(func):
@@ -75,7 +95,7 @@ def trace(func):
 	def log(*args, **kwargs):
 		#i = '\t' * 
 		#print("enter %s(%s, %s)" % (func, args, kwargs,), flush=True)
-		print("enter %s" % (func.__name__,), flush=True)
+		#print("enter %s" % (func.__name__,), flush=True)
 		r = func(*args, **kwargs)
 		#print("leave %s(%s, %s)" % (func, args, kwargs,), flush=True)
 		return r
@@ -182,7 +202,8 @@ class CG(object):
 		yield []
 		for n in range(N):
 			#S.append(f(d+1)) # f() -> GeneratorType
-			S.append(f(d)) # f() -> GeneratorType
+			#S.append(f(d)) # f() -> GeneratorType
+			S.append(partial(f, d)) # f() -> GeneratorType
 			#yield S
 			# TODO
 			yield from product(*S)
@@ -228,8 +249,10 @@ class CG(object):
 		#pprint("make_Module(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		body         = self.make_star(self.make_stmt, d)
-		type_ignores = self.make_star(self.make_type_ignore, d)
+		#body         = self.make_star(self.make_stmt, d)
+		#type_ignores = self.make_star(self.make_type_ignore, d)
+		body         = partial(self.make_star, self.make_stmt, d)
+		type_ignores = partial(self.make_star, self.make_type_ignore, d)
 		for b, ti in product(body, type_ignores):
 			assert not isinstance(b,  GeneratorType)
 			assert not isinstance(ti, GeneratorType)
@@ -265,8 +288,10 @@ class CG(object):
 		#pprint("make_FunctionType(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		argtypes = self.make_star(self.make_expr, d)
-		returns  = self.make_expr(d) # TODO
+		#argtypes = self.make_star(self.make_expr, d)
+		#returns  = self.make_expr(d) # TODO
+		argtypes = partial(self.make_star, self.make_expr, d)
+		returns  = partial(self.make_expr, d) # TODO
 		for a, r in product(argtypes, returns):
 			assert not isinstance(a, GeneratorType)
 			assert not isinstance(r, GeneratorType)
@@ -323,12 +348,18 @@ class CG(object):
 		#pprint("make_FunctionDef(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		name           = self.make_identifier(d)
-		args           = self.make_arguments(d)
-		body           = self.make_star(self.make_stmt, d)
-		decorator_list = self.make_star(self.make_expr, d)
-		returns        = self.make_optional(self.make_expr, d)
-		type_comment   = self.make_optional(self.make_string, d)
+		#name           = self.make_identifier(d)
+		#args           = self.make_arguments(d)
+		#body           = self.make_star(self.make_stmt, d)
+		#decorator_list = self.make_star(self.make_expr, d)
+		#returns        = self.make_optional(self.make_expr, d)
+		#type_comment   = self.make_optional(self.make_string, d)
+		name           = partial(self.make_identifier, d)
+		args           = partial(self.make_arguments, d)
+		body           = partial(self.make_star, self.make_stmt, d)
+		decorator_list = partial(self.make_star, self.make_expr, d)
+		returns        = partial(self.make_optional, self.make_expr, d)
+		type_comment   = partial(self.make_optional, self.make_string, d)
 		for n, a, b, dl, r, tc in product(name, args, body, decorator_list, returns, type_comment):
 			assert not isinstance(n,  GeneratorType)
 			assert not isinstance(a,  GeneratorType)
@@ -344,12 +375,18 @@ class CG(object):
 		#pprint("make_AsyncFunctionDef(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		name           = self.make_identifier(d)
-		args           = self.make_arguments(d)
-		body           = self.make_star(self.make_stmt, d)
-		decorator_list = self.make_star(self.make_expr, d)
-		returns        = self.make_optional(self.make_expr, d)
-		type_comment   = self.make_optional(self.make_string, d)
+		#name           = self.make_identifier(d)
+		#args           = self.make_arguments(d)
+		#body           = self.make_star(self.make_stmt, d)
+		#decorator_list = self.make_star(self.make_expr, d)
+		#returns        = self.make_optional(self.make_expr, d)
+		#type_comment   = self.make_optional(self.make_string, d)
+		name           = partial(self.make_identifier, d)
+		args           = partial(self.make_arguments, d)
+		body           = partial(self.make_star, self.make_stmt, d)
+		decorator_list = partial(self.make_star, self.make_expr, d)
+		returns        = partial(self.make_optional, self.make_expr, d)
+		type_comment   = partial(self.make_optional, self.make_string, d)
 		for n, a, b, dl, r, tc in product(name, args, body, decorator_list, returns, type_comment):
 			assert not isinstance(n,  GeneratorType)
 			assert not isinstance(a,  GeneratorType)
@@ -365,11 +402,16 @@ class CG(object):
 		#pprint("make_ClassDef(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		name           = self.make_identifier(d)
-		bases          = self.make_star(self.make_expr, d)
-		keywords       = self.make_star(self.make_keyword, d)
-		body           = self.make_star(self.make_stmt, d)
-		decorator_list = self.make_star(self.make_expr, d)
+		#name           = self.make_identifier(d)
+		#bases          = self.make_star(self.make_expr, d)
+		#keywords       = self.make_star(self.make_keyword, d)
+		#body           = self.make_star(self.make_stmt, d)
+		#decorator_list = self.make_star(self.make_expr, d)
+		name           = partial(self.make_identifier, d)
+		bases          = partial(self.make_star, self.make_expr, d)
+		keywords       = partial(self.make_star, self.make_keyword, d)
+		body           = partial(self.make_star, self.make_stmt, d)
+		decorator_list = partial(self.make_star, self.make_expr, d)
 		for n, ba, k, bo, dl in product(name, bases, keywords, body, decorator_list):
 			assert not isinstance(n,  GeneratorType)
 			assert not isinstance(ba, GeneratorType)
@@ -385,6 +427,7 @@ class CG(object):
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
 		value = self.make_optional(self.make_expr, d)
+		#value = partial(self.make_optional, self.make_expr, d)
 		for v in value:
 			assert not isinstance(v, GeneratorType)
 			#pprint("make_Return v: %s" % (v,), indent=d)
@@ -396,6 +439,7 @@ class CG(object):
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
 		targets = self.make_star(self.make_expr, d)
+		#targets = partial(self.make_star, self.make_expr, d)
 		for t in targets:
 			assert not isinstance(t, GeneratorType)
 			#pprint("make_Delete t: %s" % (t,), indent=d)
@@ -406,9 +450,9 @@ class CG(object):
 		#pprint("make_Assign(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		targets      = self.make_star(self.make_expr, d)
-		value        = self.make_expr(d)
-		type_comment = self.make_optional(self.make_string, d)
+		targets      = partial(self.make_star, self.make_expr, d)
+		value        = partial(self.make_expr, d)
+		type_comment = partial(self.make_optional, self.make_string, d)
 		for t, v, tc in product(targets, value, type_comment):
 			assert not isinstance(t,  GeneratorType)
 			assert not isinstance(v,  GeneratorType)
@@ -421,9 +465,12 @@ class CG(object):
 		#pprint("make_AugAssign(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		target = self.make_expr(d)
-		op     = self.make_operator(d)
-		value  = self.make_expr(d)
+		#target = self.make_expr(d)
+		#op     = self.make_operator(d)
+		#value  = self.make_expr(d)
+		target = partial(self.make_expr, d)
+		op     = partial(self.make_operator, d)
+		value  = partial(self.make_expr, d)
 		for t, o, v in product(target, op, value):
 			assert not isinstance(t, GeneratorType)
 			assert not isinstance(o, GeneratorType)
@@ -436,10 +483,14 @@ class CG(object):
 		#pprint("make_AnnAssign(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		target     = self.make_expr(d)
-		annotation = self.make_expr(d)
-		value      = self.make_optional(self.make_expr, d)
-		simple     = self.make_int(d)
+		#target     = self.make_expr(d)
+		#annotation = self.make_expr(d)
+		#value      = self.make_optional(self.make_expr, d)
+		#simple     = self.make_int(d)
+		target     = partial(self.make_expr, d)
+		annotation = partial(self.make_expr, d)
+		value      = partial(self.make_optional, self.make_expr, d)
+		simple     = partial(self.make_int, d)
 		for t, a, v, s in product(target, annotation, value, simple):
 			assert not isinstance(t, GeneratorType)
 			assert not isinstance(a, GeneratorType)
@@ -453,11 +504,16 @@ class CG(object):
 		#pprint("make_For(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		target       = self.make_expr(d)
-		iter_        = self.make_expr(d)
-		body         = self.make_star(self.make_stmt, d)
-		orelse       = self.make_star(self.make_stmt, d)
-		type_comment = self.make_optional(self.make_string, d)
+		#target       = self.make_expr(d)
+		#iter_        = self.make_expr(d)
+		#body         = self.make_star(self.make_stmt, d)
+		#orelse       = self.make_star(self.make_stmt, d)
+		#type_comment = self.make_optional(self.make_string, d)
+		target       = partial(self.make_expr, d)
+		iter_        = partial(self.make_expr, d)
+		body         = partial(self.make_star, self.make_stmt, d)
+		orelse       = partial(self.make_star, self.make_stmt, d)
+		type_comment = partial(self.make_optional, self.make_string, d)
 		for t, i, b, o, tc in product(target, iter_, body, orelse, type_comment):
 			assert not isinstance(t,  GeneratorType)
 			assert not isinstance(i,  GeneratorType)
@@ -472,11 +528,16 @@ class CG(object):
 		#pprint("make_AsyncFor(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		target       = self.make_expr(d)
-		iter_        = self.make_expr(d)
-		body         = self.make_star(self.make_stmt, d)
-		orelse       = self.make_star(self.make_stmt, d)
-		type_comment = self.make_optional(self.make_string, d)
+		#target       = self.make_expr(d)
+		#iter_        = self.make_expr(d)
+		#body         = self.make_star(self.make_stmt, d)
+		#orelse       = self.make_star(self.make_stmt, d)
+		#type_comment = self.make_optional(self.make_string, d)
+		target       = partial(self.make_expr, d)
+		iter_        = partial(self.make_expr, d)
+		body         = partial(self.make_star, self.make_stmt, d)
+		orelse       = partial(self.make_star, self.make_stmt, d)
+		type_comment = partial(self.make_optional, self.make_string, d)
 		for t, i, b, o, tc in product(target, iter_, body, orelse, type_comment):
 			assert not isinstance(t,  GeneratorType)
 			assert not isinstance(i,  GeneratorType)
@@ -491,9 +552,12 @@ class CG(object):
 		#pprint("make_While(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		test   = self.make_expr(d)
-		body   = self.make_star(self.make_stmt, d)
-		orelse = self.make_star(self.make_stmt, d)
+		#test   = self.make_expr(d)
+		#body   = self.make_star(self.make_stmt, d)
+		#orelse = self.make_star(self.make_stmt, d)
+		test   = partial(self.make_expr, d)
+		body   = partial(self.make_star, self.make_stmt, d)
+		orelse = partial(self.make_star, self.make_stmt, d)
 		for t, b, o in product(test, body, orelse):
 			assert not isinstance(t, GeneratorType)
 			assert not isinstance(b, GeneratorType)
@@ -506,9 +570,12 @@ class CG(object):
 		#pprint("make_If(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		test   = self.make_expr(d)
-		body   = self.make_star(self.make_stmt, d)
-		orelse = self.make_star(self.make_stmt, d)
+		#test   = self.make_expr(d)
+		#body   = self.make_star(self.make_stmt, d)
+		#orelse = self.make_star(self.make_stmt, d)
+		test   = partial(self.make_expr, d)
+		body   = partial(self.make_star, self.make_stmt, d)
+		orelse = partial(self.make_star, self.make_stmt, d)
 		for t, b, o in product(test, body, orelse):
 			assert not isinstance(t, GeneratorType)
 			assert not isinstance(b, GeneratorType)
@@ -521,9 +588,12 @@ class CG(object):
 		#pprint("make_With(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		items        = self.make_star(self.make_withitem, d)
-		body         = self.make_star(self.make_stmt, d)
-		type_comment = self.make_optional(self.make_string, d)
+		#items        = self.make_star(self.make_withitem, d)
+		#body         = self.make_star(self.make_stmt, d)
+		#type_comment = self.make_optional(self.make_string, d)
+		items        = partial(self.make_star, self.make_withitem, d)
+		body         = partial(self.make_star, self.make_stmt, d)
+		type_comment = partial(self.make_optional, self.make_string, d)
 		for i, b, tc in product(items, body, type_comment):
 			assert not isinstance(i,  GeneratorType)
 			assert not isinstance(b,  GeneratorType)
@@ -536,9 +606,12 @@ class CG(object):
 		#pprint("make_AsyncWith(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		items        = self.make_star(self.make_withitem, d)
-		body         = self.make_star(self.make_stmt, d)
-		type_comment = self.make_optional(self.make_string, d)
+		#items        = self.make_star(self.make_withitem, d)
+		#body         = self.make_star(self.make_stmt, d)
+		#type_comment = self.make_optional(self.make_string, d)
+		items        = partial(self.make_star, self.make_withitem, d)
+		body         = partial(self.make_star, self.make_stmt, d)
+		type_comment = partial(self.make_optional, self.make_string, d)
 		for i, b, tc in product(items, body, type_comment):
 			assert not isinstance(i,  GeneratorType)
 			assert not isinstance(b,  GeneratorType)
@@ -551,8 +624,10 @@ class CG(object):
 		#pprint("make_Match(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		subject = self.make_expr(d)
-		cases   = self.make_star(self.make_match_case, d)
+		#subject = self.make_expr(d)
+		#cases   = self.make_star(self.make_match_case, d)
+		subject = partial(self.make_expr, d)
+		cases   = partial(self.make_star, self.make_match_case, d)
 		for s, c in product(subject, cases):
 			assert not isinstance(s, GeneratorType)
 			assert not isinstance(c, GeneratorType)
@@ -564,8 +639,10 @@ class CG(object):
 		#pprint("make_Raise(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		exc   = self.make_optional(self.make_expr, d)
-		cause = self.make_optional(self.make_expr, d)
+		#exc   = self.make_optional(self.make_expr, d)
+		#cause = self.make_optional(self.make_expr, d)
+		exc   = partial(self.make_optional, self.make_expr, d)
+		cause = partial(self.make_optional, self.make_expr, d)
 		for e, c in product(exc, cause):
 			assert not isinstance(e, GeneratorType)
 			assert not isinstance(c, GeneratorType)
@@ -577,10 +654,14 @@ class CG(object):
 		#pprint("make_Try(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		body      = self.make_star(self.make_stmt, d)
-		handlers  = self.make_star(self.make_excepthandler, d)
-		orelse    = self.make_star(self.make_stmt, d)
-		finalbody = self.make_star(self.make_stmt, d)
+		#body      = self.make_star(self.make_stmt, d)
+		#handlers  = self.make_star(self.make_excepthandler, d)
+		#orelse    = self.make_star(self.make_stmt, d)
+		#finalbody = self.make_star(self.make_stmt, d)
+		body      = partial(self.make_star, self.make_stmt, d)
+		handlers  = partial(self.make_star, self.make_excepthandler, d)
+		orelse    = partial(self.make_star, self.make_stmt, d)
+		finalbody = partial(self.make_star, self.make_stmt, d)
 		for b, h, o, f in product(body, handlers, orelse, finalbody):
 			assert not isinstance(b, GeneratorType)
 			assert not isinstance(h, GeneratorType)
@@ -594,8 +675,10 @@ class CG(object):
 		#pprint("make_Assert(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		test = self.make_expr(d)
-		msg  = self.make_optional(self.make_expr, d)
+		#test = self.make_expr(d)
+		#msg  = self.make_optional(self.make_expr, d)
+		test = partial(self.make_expr, d)
+		msg  = partial(self.make_optional, self.make_expr, d)
 		for t, m in product(test, msg):
 			assert not isinstance(t, GeneratorType)
 			assert not isinstance(m, GeneratorType)
@@ -618,9 +701,12 @@ class CG(object):
 		#pprint("make_ImportFrom(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		module = self.make_optional(self.make_identifier, d)
-		names  = self.make_star(self.make_alias, d)
-		level  = self.make_optional(self.make_int, d)
+		#module = self.make_optional(self.make_identifier, d)
+		#names  = self.make_star(self.make_alias, d)
+		#level  = self.make_optional(self.make_int, d)
+		module = partial(self.make_optional, self.make_identifier, d)
+		names  = partial(self.make_star, self.make_alias, d)
+		level  = partial(self.make_optional, self.make_int, d)
 		for m, n, l in product(module, names, level):
 			assert not isinstance(m, GeneratorType)
 			assert not isinstance(n, GeneratorType)
@@ -729,8 +815,10 @@ class CG(object):
 		#pprint("make_BoolOp(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		op     = self.make_boolop(d)
-		values = self.make_star(self.make_expr, d)
+		#op     = self.make_boolop(d)
+		#values = self.make_star(self.make_expr, d)
+		op     = partial(self.make_boolop, d)
+		values = partial(self.make_star, self.make_expr, d)
 		for o, v in product(op, values):
 			assert not isinstance(o, GeneratorType)
 			assert not isinstance(v, GeneratorType)
@@ -742,8 +830,10 @@ class CG(object):
 		#pprint("make_NamedExpr(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		target = self.make_expr(d)
-		value  = self.make_expr(d)
+		#target = self.make_expr(d)
+		#value  = self.make_expr(d)
+		target = partial(self.make_expr, d)
+		value  = partial(self.make_expr, d)
 		for t, v in product(target, value):
 			assert not isinstance(t, GeneratorType)
 			assert not isinstance(v, GeneratorType)
@@ -755,9 +845,12 @@ class CG(object):
 		#pprint("make_BinOp(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		left  = self.make_expr(d)
-		op    = self.make_operator(d)
-		right = self.make_expr(d)
+		#left  = self.make_expr(d)
+		#op    = self.make_operator(d)
+		#right = self.make_expr(d)
+		left  = partial(self.make_expr, d)
+		op    = partial(self.make_operator, d)
+		right = partial(self.make_expr, d)
 		for l, o, r in product(left, op, right):
 			assert not isinstance(l, GeneratorType)
 			assert not isinstance(o, GeneratorType)
@@ -770,8 +863,10 @@ class CG(object):
 		#pprint("make_UnaryOp(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		op      = self.make_unaryop(d)
-		operand = self.make_expr(d)
+		#op      = self.make_unaryop(d)
+		#operand = self.make_expr(d)
+		op      = partial(self.make_unaryop, d)
+		operand = partial(self.make_expr, d)
 		for o, a in product(op, operand):
 			assert not isinstance(o, GeneratorType)
 			assert not isinstance(a, GeneratorType)
@@ -783,8 +878,10 @@ class CG(object):
 		#pprint("make_Lambda(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		args = self.make_arguments(d)
-		body = self.make_expr(d)
+		#args = self.make_arguments(d)
+		#body = self.make_expr(d)
+		args = partial(self.make_arguments, d)
+		body = partial(self.make_expr, d)
 		for a, b in product(args, body):
 			assert not isinstance(a, GeneratorType)
 			assert not isinstance(b, GeneratorType)
@@ -796,9 +893,12 @@ class CG(object):
 		#pprint("make_IfExp(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		test   = self.make_expr(d)
-		body   = self.make_expr(d)
-		orelse = self.make_expr(d)
+		#test   = self.make_expr(d)
+		#body   = self.make_expr(d)
+		#orelse = self.make_expr(d)
+		test   = partial(self.make_expr, d)
+		body   = partial(self.make_expr, d)
+		orelse = partial(self.make_expr, d)
 		for t, b, o in product(test, body, orelse):
 			assert not isinstance(t, GeneratorType)
 			assert not isinstance(b, GeneratorType)
@@ -811,8 +911,10 @@ class CG(object):
 		#pprint("make_Dict(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		keys   = self.make_star(self.make_expr, d)
-		values = self.make_star(self.make_expr, d)
+		#keys   = self.make_star(self.make_expr, d)
+		#values = self.make_star(self.make_expr, d)
+		keys   = partial(self.make_star, self.make_expr, d)
+		values = partial(self.make_star, self.make_expr, d)
 		for k, v in product(keys, values):
 			assert not isinstance(k, GeneratorType)
 			assert not isinstance(v, GeneratorType)
@@ -835,8 +937,10 @@ class CG(object):
 		#pprint("make_ListComp(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		elt        = self.make_expr(d)
-		generators = self.make_star(self.make_comprehension, d)
+		#elt        = self.make_expr(d)
+		#generators = self.make_star(self.make_comprehension, d)
+		elt        = partial(self.make_expr, d)
+		generators = partial(self.make_star, self.make_comprehension, d)
 		for e, g in product(elt, generators):
 			assert not isinstance(e, GeneratorType)
 			assert not isinstance(g, GeneratorType)
@@ -848,8 +952,10 @@ class CG(object):
 		#pprint("make_SetComp(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		elt        = self.make_expr(d)
-		generators = self.make_star(self.make_comprehension, d)
+		#elt        = self.make_expr(d)
+		#generators = self.make_star(self.make_comprehension, d)
+		elt        = partial(self.make_expr, d)
+		generators = partial(self.make_star, self.make_comprehension, d)
 		for e, g in product(elt, generators):
 			assert not isinstance(e, GeneratorType)
 			assert not isinstance(g, GeneratorType)
@@ -861,9 +967,12 @@ class CG(object):
 		#pprint("make_DictComp(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		key        = self.make_expr(d)
-		value      = self.make_expr(d)
-		generators = self.make_star(self.make_comprehension, d)
+		#key        = self.make_expr(d)
+		#value      = self.make_expr(d)
+		#generators = self.make_star(self.make_comprehension, d)
+		key        = partial(self.make_expr, d)
+		value      = partial(self.make_expr, d)
+		generators = partial(self.make_star, self.make_comprehension, d)
 		for k, v, g in product(key, value, generators):
 			assert not isinstance(k, GeneratorType)
 			assert not isinstance(v, GeneratorType)
@@ -876,8 +985,10 @@ class CG(object):
 		#pprint("make_GeneratorExp(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		elt        = self.make_expr(d)
-		generators = self.make_star(self.make_comprehension, d)
+		#elt        = self.make_expr(d)
+		#generators = self.make_star(self.make_comprehension, d)
+		elt        = partial(self.make_expr, d)
+		generators = partial(self.make_star, self.make_comprehension, d)
 		for e, g in product(elt, generators):
 			assert not isinstance(e, GeneratorType)
 			assert not isinstance(g, GeneratorType)
@@ -922,9 +1033,12 @@ class CG(object):
 		#pprint("make_Compare(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		left        = self.make_expr(d)
-		ops         = self.make_star(self.make_cmpop, d)
-		comparators = self.make_star(self.make_expr, d)
+		#left        = self.make_expr(d)
+		#ops         = self.make_star(self.make_cmpop, d)
+		#comparators = self.make_star(self.make_expr, d)
+		left        = partial(self.make_expr, d)
+		ops         = partial(self.make_star, self.make_cmpop, d)
+		comparators = partial(self.make_star, self.make_expr, d)
 		for l, o, c in product(left, ops, comparators):
 			assert not isinstance(l, GeneratorType)
 			assert not isinstance(o, GeneratorType)
@@ -937,9 +1051,12 @@ class CG(object):
 		#pprint("make_Call(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		func     = self.make_expr(d)
-		args     = self.make_star(self.make_expr, d)
-		keywords = self.make_star(self.make_keyword, d)
+		#func     = self.make_expr(d)
+		#args     = self.make_star(self.make_expr, d)
+		#keywords = self.make_star(self.make_keyword, d)
+		func     = partial(self.make_expr, d)
+		args     = partial(self.make_star, self.make_expr, d)
+		keywords = partial(self.make_star, self.make_keyword, d)
 		for f, a, k in product(func, args, keywords):
 			assert not isinstance(f, GeneratorType)
 			assert not isinstance(a, GeneratorType)
@@ -952,9 +1069,12 @@ class CG(object):
 		#pprint("make_FormattedValue(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		value       = self.make_expr(d)
-		conversion  = self.make_int(d)
-		format_spec = self.make_optional(self.make_expr, d)
+		#value       = self.make_expr(d)
+		#conversion  = self.make_int(d)
+		#format_spec = self.make_optional(self.make_expr, d)
+		value       = partial(self.make_expr, d)
+		conversion  = partial(self.make_int, d)
+		format_spec = partial(self.make_optional, self.make_expr, d)
 		for v, c, f in product(value, conversion, format_spec):
 			assert not isinstance(v, GeneratorType)
 			assert not isinstance(c, GeneratorType)
@@ -978,8 +1098,10 @@ class CG(object):
 		#pprint("make_Constant(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		value = self.make_constant(d)
-		kind  = self.make_optional(self.make_string, d)
+		#value = self.make_constant(d)
+		#kind  = self.make_optional(self.make_string, d)
+		value = partial(self.make_constant, d)
+		kind  = partial(self.make_optional, self.make_string, d)
 		for v, k in product(value, kind):
 			assert not isinstance(v, GeneratorType)
 			assert not isinstance(k, GeneratorType)
@@ -991,9 +1113,12 @@ class CG(object):
 		#pprint("make_Attribute(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		value = self.make_expr(d)
-		attr  = self.make_identifier(d)
-		ctx   = self.make_expr_context(d)
+		#value = self.make_expr(d)
+		#attr  = self.make_identifier(d)
+		#ctx   = self.make_expr_context(d)
+		value = partial(self.make_expr, d)
+		attr  = partial(self.make_identifier, d)
+		ctx   = partial(self.make_expr_context, d)
 		for v, a, c in product(value, attr, ctx):
 			assert not isinstance(v, GeneratorType)
 			assert not isinstance(a, GeneratorType)
@@ -1006,9 +1131,12 @@ class CG(object):
 		#pprint("make_Subscript(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		value  = self.make_expr(d)
-		slice_ = self.make_expr(d)
-		ctx    = self.make_expr_context(d)
+		#value  = self.make_expr(d)
+		#slice_ = self.make_expr(d)
+		#ctx    = self.make_expr_context(d)
+		value  = partial(self.make_expr, d)
+		slice_ = partial(self.make_expr, d)
+		ctx    = partial(self.make_expr_context, d)
 		for v, s, c in product(value, slice_, ctx):
 			assert not isinstance(v, GeneratorType)
 			assert not isinstance(s, GeneratorType)
@@ -1021,8 +1149,10 @@ class CG(object):
 		#pprint("make_Starred(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		value = self.make_expr(d)
-		ctx   = self.make_expr_context(d)
+		#value = self.make_expr(d)
+		#ctx   = self.make_expr_context(d)
+		value = partial(self.make_expr, d)
+		ctx   = partial(self.make_expr_context, d)
 		for v, c in product(value, ctx):
 			assert not isinstance(v, GeneratorType)
 			assert not isinstance(c, GeneratorType)
@@ -1034,8 +1164,10 @@ class CG(object):
 		#pprint("make_Name(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		id_ = self.make_identifier(d)
-		ctx = self.make_expr_context(d)
+		#id_ = self.make_identifier(d)
+		#ctx = self.make_expr_context(d)
+		id_ = partial(self.make_identifier, d)
+		ctx = partial(self.make_expr_context, d)
 		for i, c in product(id_, ctx):
 			assert not isinstance(i, GeneratorType)
 			assert not isinstance(c, GeneratorType)
@@ -1047,8 +1179,10 @@ class CG(object):
 		#pprint("make_List(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		elts = self.make_star(self.make_expr, d)
-		ctx  = self.make_expr_context(d)
+		#elts = self.make_star(self.make_expr, d)
+		#ctx  = self.make_expr_context(d)
+		elts = partial(self.make_star, self.make_expr, d)
+		ctx  = partial(self.make_expr_context, d)
 		for e, c in product(elts, ctx):
 			assert not isinstance(e, GeneratorType)
 			assert not isinstance(c, GeneratorType)
@@ -1060,8 +1194,10 @@ class CG(object):
 		#pprint("make_Tuple(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		elts = self.make_star(self.make_expr, d)
-		ctx  = self.make_expr_context(d)
+		#elts = self.make_star(self.make_expr, d)
+		#ctx  = self.make_expr_context(d)
+		elts = partial(self.make_star, self.make_expr, d)
+		ctx  = partial(self.make_expr_context, d)
 		for e, c in product(elts, ctx):
 			assert not isinstance(e, GeneratorType)
 			assert not isinstance(c, GeneratorType)
@@ -1073,9 +1209,12 @@ class CG(object):
 		#pprint("make_Slice(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		lower = self.make_optional(self.make_expr, d)
-		upper = self.make_optional(self.make_expr, d)
-		step  = self.make_optional(self.make_expr, d)
+		#lower = self.make_optional(self.make_expr, d)
+		#upper = self.make_optional(self.make_expr, d)
+		#step  = self.make_optional(self.make_expr, d)
+		lower = partial(self.make_optional, self.make_expr, d)
+		upper = partial(self.make_optional, self.make_expr, d)
+		step  = partial(self.make_optional, self.make_expr, d)
 		for l, u, s in product(lower, upper, step):
 			assert not isinstance(l, GeneratorType)
 			assert not isinstance(u, GeneratorType)
@@ -1422,10 +1561,14 @@ class CG(object):
 		#pprint("make_comprehension(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		target = self.make_expr(d)
-		iter_  = self.make_expr(d)
-		ifs    = self.make_star(self.make_expr, d)
-		is_async = self.make_int(d)
+		#targetl   = self.make_expr(d)
+		#iter_    = self.make_expr(d)
+		#ifs      = self.make_star(self.make_expr, d)
+		#is_async = self.make_int(d)
+		target   = partial(self.make_expr, d)
+		iter_    = partial(self.make_expr, d)
+		ifs      = partial(self.make_star, self.make_expr, d)
+		is_async = partial(self.make_int, d)
 		for t, it, i, a in product(target, iter_, ifs, is_async):
 			assert not isinstance(t,  GeneratorType)
 			assert not isinstance(it, GeneratorType)
@@ -1440,9 +1583,12 @@ class CG(object):
 		#pprint("make_excepthandler(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		type_ = self.make_optional(self.make_expr, d)
-		name  = self.make_optional(self.make_identifier, d)
-		body  = self.make_star(self.make_stmt, d)
+		#type_ = self.make_optional(self.make_expr, d)
+		#name  = self.make_optional(self.make_identifier, d)
+		#body  = self.make_star(self.make_stmt, d)
+		type_ = partial(self.make_optional, self.make_expr, d)
+		name  = partial(self.make_optional, self.make_identifier, d)
+		body  = partial(self.make_star, self.make_stmt, d)
 		for t, n, b in product(type_, name, body):
 			assert not isinstance(t, GeneratorType)
 			assert not isinstance(n, GeneratorType)
@@ -1456,13 +1602,20 @@ class CG(object):
 		#pprint("make_arguments(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		posonlyargs = self.make_star(self.make_arg, d)
-		args        = self.make_star(self.make_arg, d)
-		vararg      = self.make_optional(self.make_arg, d)
-		kwonlyargs  = self.make_star(self.make_arg, d)
-		kw_defaults = self.make_star(self.make_expr, d)
-		kwarg       = self.make_optional(self.make_arg, d)
-		defaults    = self.make_star(self.make_expr, d)
+		#posonlyargs = self.make_star(self.make_arg, d)
+		#args        = self.make_star(self.make_arg, d)
+		#vararg      = self.make_optional(self.make_arg, d)
+		#kwonlyargs  = self.make_star(self.make_arg, d)
+		#kw_defaults = self.make_star(self.make_expr, d)
+		#kwarg       = self.make_optional(self.make_arg, d)
+		#defaults    = self.make_star(self.make_expr, d)
+		posonlyargs = partial(self.make_star, self.make_arg, d)
+		args        = partial(self.make_star, self.make_arg, d)
+		vararg      = partial(self.make_optional, self.make_arg, d)
+		kwonlyargs  = partial(self.make_star, self.make_arg, d)
+		kw_defaults = partial(self.make_star, self.make_expr, d)
+		kwarg       = partial(self.make_optional, self.make_arg, d)
+		defaults    = partial(self.make_star, self.make_expr, d)
 		for p, a, v, kwo, kwd, kwa, df in product(posonlyargs, args, vararg, kwonlyargs, kw_defaults, kwarg, defaults):
 			assert not isinstance(p,   GeneratorType)
 			assert not isinstance(a,   GeneratorType)
@@ -1480,9 +1633,12 @@ class CG(object):
 		#pprint("make_arg(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		arg          = self.make_identifier(d)
-		annotation   = self.make_optional(self.make_expr, d)
-		type_comment = self.make_optional(self.make_string, d)
+		#arg          = self.make_identifier(d)
+		#annotation   = self.make_optional(self.make_expr, d)
+		#type_comment = self.make_optional(self.make_string, d)
+		arg          = partial(self.make_identifier, d)
+		annotation   = partial(self.make_optional, self.make_expr, d)
+		type_comment = partial(self.make_optional, self.make_string, d)
 		for a, n, t in product(arg, annotation, type_comment):
 			assert not isinstance(a, GeneratorType)
 			assert not isinstance(n, GeneratorType)
@@ -1496,8 +1652,10 @@ class CG(object):
 		#pprint("make_keyword(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		arg   = self.make_optional(self.make_identifier, d)
-		value = self.make_expr(d)
+		#arg   = self.make_optional(self.make_identifier, d)
+		#value = self.make_expr(d)
+		arg   = partial(self.make_optional, self.make_identifier, d)
+		value = partial(self.make_expr, d)
 		for a, v in product(arg, value):
 			assert not isinstance(a, GeneratorType)
 			assert not isinstance(v, GeneratorType)
@@ -1510,8 +1668,10 @@ class CG(object):
 		#pprint("make_alias(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		name   = self.make_identifier(d)
-		asname = self.make_optional(self.make_identifier, d)
+		#name   = self.make_identifier(d)
+		#asname = self.make_optional(self.make_identifier, d)
+		name   = partial(self.make_identifier, d)
+		asname = partial(self.make_optional, self.make_identifier, d)
 		for n, a in product(name, asname):
 			assert not isinstance(n, GeneratorType)
 			assert not isinstance(a, GeneratorType)
@@ -1524,8 +1684,10 @@ class CG(object):
 		#pprint("make_withitem(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		context_expr  = self.make_expr(d)
-		optional_vars = self.make_optional(self.make_expr, d)
+		#context_expr  = self.make_expr(d)
+		#optional_vars = self.make_optional(self.make_expr, d)
+		context_expr  = partial(self.make_expr, d)
+		optional_vars = partial(self.make_optional, self.make_expr, d)
 		for c, o in product(context_expr, optional_vars):
 			assert not isinstance(c, GeneratorType)
 			assert not isinstance(o, GeneratorType)
@@ -1538,9 +1700,12 @@ class CG(object):
 		#pprint("make_match_case(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		pattern = self.make_pattern(d)
-		guard   = self.make_optional(self.make_expr, d)
-		body    = self.make_star(self.make_stmt, d)
+		#pattern = self.make_pattern(d)
+		#guard   = self.make_optional(self.make_expr, d)
+		#body    = self.make_star(self.make_stmt, d)
+		pattern = partial(self.make_pattern, d)
+		guard   = partial(self.make_optional, self.make_expr, d)
+		body    = partial(self.make_star, self.make_stmt, d)
 		for p, g, b in product(pattern, guard, body):
 			assert not isinstance(p, GeneratorType)
 			assert not isinstance(g, GeneratorType)
@@ -1608,9 +1773,12 @@ class CG(object):
 		#pprint("make_MatchMapping(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		keys     = self.make_star(self.make_expr, d)
-		patterns = self.make_star(self.make_pattern, d)
-		rest     = self.make_optional(self.make_identifier, d)
+		#keys     = self.make_star(self.make_expr, d)
+		#patterns = self.make_star(self.make_pattern, d)
+		#rest     = self.make_optional(self.make_identifier, d)
+		keys     = partial(self.make_star, self.make_expr, d)
+		patterns = partial(self.make_star, self.make_pattern, d)
+		rest     = partial(self.make_optional, self.make_identifier, d)
 		for k, p, r in product(keys, patterns, rest):
 			assert not isinstance(k, GeneratorType)
 			assert not isinstance(p, GeneratorType)
@@ -1623,10 +1791,14 @@ class CG(object):
 		#pprint("make_MatchClass(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		cls          = self.make_expr(d)
-		patterns     = self.make_star(self.make_pattern, d)
-		kwd_attrs    = self.make_star(self.make_identifier, d)
-		kwd_patterns = self.make_star(self.make_pattern, d)
+		#cls          = self.make_expr(d)
+		#patterns     = self.make_star(self.make_pattern, d)
+		#kwd_attrs    = self.make_star(self.make_identifier, d)
+		#kwd_patterns = self.make_star(self.make_pattern, d)
+		cls          = partial(self.make_expr, d)
+		patterns     = partial(self.make_star, self.make_pattern, d)
+		kwd_attrs    = partial(self.make_star, self.make_identifier, d)
+		kwd_patterns = partial(self.make_star, self.make_pattern, d)
 		for c, p, ka, kp in product(cls, patterns, kwd_attrs, kwd_patterns):
 			assert not isinstance(c,  GeneratorType)
 			assert not isinstance(p,  GeneratorType)
@@ -1651,8 +1823,10 @@ class CG(object):
 		#pprint("make_MatchAs(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		pattern = self.make_optional(self.make_pattern, d)
-		name    = self.make_optional(self.make_identifier, d)
+		#pattern = self.make_optional(self.make_pattern, d)
+		#name    = self.make_optional(self.make_identifier, d)
+		pattern = partial(self.make_optional, self.make_pattern, d)
+		name    = partial(self.make_optional, self.make_identifier, d)
 		for p, n in product(pattern, name):
 			assert not isinstance(p, GeneratorType)
 			assert not isinstance(n, GeneratorType)
@@ -1678,8 +1852,10 @@ class CG(object):
 		#pprint("make_TypeIgnore(d=%s)" % (d,), indent=d)
 		if d == self.max_rd: return # raise StopIteration()
 		d += 1
-		lineno = self.make_int(d)
-		tag    = self.make_string(d)
+		#lineno = self.make_int(d)
+		#tag    = self.make_string(d)
+		lineno = partial(self.make_int, d)
+		tag    = partial(self.make_string, d)
 		for l, t in product(lineno, tag):
 			assert not isinstance(l, GeneratorType)
 			assert not isinstance(t, GeneratorType)
